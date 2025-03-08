@@ -8,14 +8,14 @@ use oxc_span::Span;
 
 use crate::{AstNode, context::LintContext, rule::Rule};
 
-fn no_redundant_constructor_init_diagnostic(span: Span) -> OxcDiagnostic {
+fn no_unnecessary_parameter_property_assignment_diagnostic(span: Span) -> OxcDiagnostic {
     OxcDiagnostic::warn("Explicit initialization of public members is redundant")
         .with_help("Remove the explicit initialization")
         .with_label(span)
 }
 
 #[derive(Debug, Default, Clone)]
-pub struct NoRedundantConstructorInit;
+pub struct NoUnnecessaryParameterPropertyAssignment;
 
 declare_oxc_lint!(
     /// ### What it does
@@ -44,13 +44,13 @@ declare_oxc_lint!(
     ///   constructor(public name: unknown) {}
     /// }
     /// ```
-    NoRedundantConstructorInit,
-    oxc,
+    NoUnnecessaryParameterPropertyAssignment,
+    typescript,
     correctness,
     pending,
 );
 
-impl Rule for NoRedundantConstructorInit {
+impl Rule for NoUnnecessaryParameterPropertyAssignment {
     fn run<'a>(&self, node: &AstNode<'a>, ctx: &LintContext<'a>) {
         let AstKind::MethodDefinition(method) = node.kind() else {
             return;
@@ -96,7 +96,9 @@ impl Rule for NoRedundantConstructorInit {
                     continue;
                 }
 
-                ctx.diagnostic(no_redundant_constructor_init_diagnostic(assignment_expr.span));
+                ctx.diagnostic(no_unnecessary_parameter_property_assignment_diagnostic(
+                    assignment_expr.span,
+                ));
             }
         }
     }
@@ -196,6 +198,11 @@ fn test() {
         ",
     ];
 
-    Tester::new(NoRedundantConstructorInit::NAME, NoRedundantConstructorInit::PLUGIN, pass, fail)
-        .test_and_snapshot();
+    Tester::new(
+        NoUnnecessaryParameterPropertyAssignment::NAME,
+        NoUnnecessaryParameterPropertyAssignment::PLUGIN,
+        pass,
+        fail,
+    )
+    .test_and_snapshot();
 }
